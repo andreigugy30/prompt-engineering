@@ -494,6 +494,107 @@ textarea {
 	border-radius: 6px;
 }
 
+/* Metadata Component */
+.metadata-component {
+	background: rgba(99, 102, 241, 0.05);
+	border: 1px solid rgba(99, 102, 241, 0.2);
+	border-radius: 8px;
+	padding: 12px;
+	margin-bottom: 16px;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.metadata-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 12px;
+}
+
+.metadata-model {
+	font-size: 0.85rem;
+	font-weight: 600;
+	color: var(--primary-color);
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.metadata-created {
+	font-size: 0.75rem;
+	color: var(--text-secondary);
+	font-style: italic;
+}
+
+.metadata-tokens {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.token-estimate {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 0.85rem;
+	padding: 8px 12px;
+	border-radius: 6px;
+	transition: all 0.3s ease;
+}
+
+.token-estimate.confidence-high {
+	background: rgba(16, 185, 129, 0.1);
+	border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.token-estimate.confidence-medium {
+	background: rgba(251, 191, 36, 0.1);
+	border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.token-estimate.confidence-low {
+	background: rgba(239, 68, 68, 0.1);
+	border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.token-label {
+	font-weight: 600;
+	color: var(--text-secondary);
+}
+
+.token-range {
+	font-weight: 700;
+	color: var(--text-primary);
+	min-width: 50px;
+}
+
+.confidence-badge {
+	display: inline-block;
+	padding: 4px 8px;
+	border-radius: 4px;
+	font-size: 0.7rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	margin-left: auto;
+}
+
+.token-estimate.confidence-high .confidence-badge {
+	background: #10b981;
+	color: white;
+}
+
+.token-estimate.confidence-medium .confidence-badge {
+	background: #fbbf24;
+	color: #1f2937;
+}
+
+.token-estimate.confidence-low .confidence-badge {
+	background: #ef4444;
+	color: white;
+
 .rating-component {
 	display: flex;
 	justify-content: space-between;
@@ -592,6 +693,15 @@ footer {
 
 	.form-section {
 		padding: 20px;
+	}
+
+	.metadata-header {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+
+	.metadata-created {
+		align-self: flex-end;
 	}
 }
 
