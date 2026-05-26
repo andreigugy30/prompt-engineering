@@ -215,6 +215,60 @@ textarea {
 	border-radius: 6px;
 }
 
+.rating-component {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 16px;
+	padding-bottom: 12px;
+	border-bottom: 1px solid var(--border-color);
+}
+
+.stars-input {
+	display: flex;
+	gap: 4px;
+	cursor: pointer;
+}
+
+.star {
+	font-size: 1.5rem;
+	color: #64748b;
+	transition: all 0.2s ease;
+	user-select: none;
+	cursor: pointer;
+}
+
+.star:hover,
+.star.hover {
+	color: #fbbf24;
+	transform: scale(1.15);
+	filter: drop-shadow(0 0 4px rgba(251, 191, 36, 0.5));
+}
+
+.star.active {
+	color: #fbbf24;
+	text-shadow: 0 0 2px rgba(251, 191, 36, 0.3);
+}
+
+.rating-info {
+	display: flex;
+	gap: 6px;
+	align-items: center;
+	font-size: 0.9rem;
+}
+
+.average-rating {
+	font-weight: 700;
+	color: #fbbf24;
+	font-size: 1rem;
+	min-width: 25px;
+}
+
+.total-ratings {
+	color: var(--text-secondary);
+	font-size: 0.8rem;
+}
+
 .prompt-card-footer {
 	display: flex;
 	justify-content: space-between;

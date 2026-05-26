@@ -29,6 +29,9 @@ promptForm.addEventListener("submit", (e) => {
 		title: title,
 		content: content,
 		createdAt: new Date().toLocaleDateString(),
+		ratings: [],
+		averageRating: 0,
+		totalRatings: 0,
 	};
 
 	// Get existing prompts
@@ -84,9 +87,29 @@ function createPromptCard(prompt) {
 	const preview =
 		prompt.content.substring(0, 80) + (prompt.content.length > 80 ? "..." : "");
 
+	// Ensure rating properties exist for backwards compatibility
+	if (prompt.ratings === undefined) prompt.ratings = [];
+	if (prompt.averageRating === undefined) prompt.averageRating = 0;
+	if (prompt.totalRatings === undefined) prompt.totalRatings = 0;
+
 	card.innerHTML = `
         <h3 class="prompt-card-title">${escapeHtml(prompt.title)}</h3>
         <p class="prompt-card-preview">${escapeHtml(preview)}</p>
+        <div class="rating-component" data-prompt-id="${prompt.id}">
+            <div class="stars-input">
+                ${[1, 2, 3, 4, 5]
+									.map((star) => {
+										const userRating = getUserRatingForPrompt(prompt.id);
+										const isActive = star <= userRating ? "active" : "";
+										return `<span class="star ${isActive}" data-value="${star}" data-prompt-id="${prompt.id}">★</span>`;
+									})
+									.join("")}
+            </div>
+            <div class="rating-info">
+                <span class="average-rating">${(prompt.averageRating || 0).toFixed(1)}</span>
+                <span class="total-ratings">(${prompt.totalRatings || 0})</span>
+            </div>
+        </div>
         <div class="prompt-card-footer">
             <span class="prompt-card-date">${prompt.createdAt}</span>
             <button class="btn btn-danger" onclick="deletePrompt(${prompt.id})">Delete</button>
@@ -112,3 +135,94 @@ function escapeHtml(text) {
 	div.textContent = text;
 	return div.innerHTML;
 }
+
+// Calculate average rating
+function calculateAverageRating(ratings) {
+	if (ratings.length === 0) return 0;
+	const sum = ratings.reduce((acc, r) => acc + r.score, 0);
+	return sum / ratings.length;
+}
+
+// Get current user ID (stored in localStorage)
+function getCurrentUserId() {
+	let userId = localStorage.getItem("userId");
+	if (!userId) {
+		userId = `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+		localStorage.setItem("userId", userId);
+	}
+	return userId;
+}
+
+// Get user's rating for a specific prompt
+function getUserRatingForPrompt(promptId) {
+	const prompts = getPrompts();
+	const prompt = prompts.find((p) => p.id === promptId);
+	if (!prompt) return 0;
+
+	const userId = getCurrentUserId();
+	const userRating = prompt?.ratings?.find((r) => r.userId === userId);
+	return userRating ? userRating.score : 0;
+}
+
+// Submit rating for a prompt
+function submitRating(promptId, score) {
+	const prompts = getPrompts();
+	const prompt = prompts.find((p) => p.id === promptId);
+
+	if (!prompt) return;
+
+	// Initialize ratings array if it doesn't exist (for backwards compatibility)
+	if (!prompt.ratings) {
+		prompt.ratings = [];
+	}
+
+	const userId = getCurrentUserId();
+	const existingRating = prompt.ratings.find((r) => r.userId === userId);
+
+	if (existingRating) {
+		existingRating.score = score;
+	} else {
+		prompt.ratings.push({ userId, score });
+	}
+
+	prompt.averageRating = calculateAverageRating(prompt.ratings);
+	prompt.totalRatings = prompt.ratings.length;
+
+	localStorage.setItem(STORAGE_KEY, JSON.stringify(prompts));
+	displayPrompts();
+}
+
+// Handle star click events
+document.addEventListener("click", (e) => {
+	if (e.target.classList.contains("star")) {
+		const promptId = parseInt(e.target.dataset.promptId);
+		const score = parseInt(e.target.dataset.value);
+		submitRating(promptId, score);
+	}
+});
+
+// Handle star hover effect
+document.addEventListener("mouseover", (e) => {
+	if (e.target.classList.contains("star")) {
+		const starsInput = e.target.closest(".stars-input");
+		const hoverValue = parseInt(e.target.dataset.value);
+
+		const stars = starsInput.querySelectorAll(".star");
+		stars.forEach((star, index) => {
+			if (index < hoverValue) {
+				star.classList.add("hover");
+			} else {
+				star.classList.remove("hover");
+			}
+		});
+	}
+});
+
+// Reset hover effect
+document.addEventListener("mouseout", (e) => {
+	if (e.target.classList.contains("star")) {
+		const starsInput = e.target.closest(".stars-input");
+		const stars = starsInput.querySelectorAll(".star");
+		stars.forEach((star) => star.classList.remove("hover"));
+	}
+});
