@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prompt Library</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📚 Prompt Library</h1>
+            <p class="subtitle">Save and organize your favorite prompts</p>
+        </header>
+
+        <main>
+            <section class="form-section">
+                <h2>Create New Prompt</h2>
+                <form id="promptForm">
+                    <div class="form-group">
+                        <label for="promptTitle">Prompt Title</label>
+                        <input 
+                            type="text" 
+                            id="promptTitle" 
+                            placeholder="e.g., Code Review Template" 
+                            required
+                        >
+                    </div>
+                    <div class="form-group">
+                        <label for="promptContent">Prompt Content</label>
+                        <textarea 
+                            id="promptContent" 
+                            placeholder="Enter your prompt here..." 
+                            rows="6" 
+                            required
+                        ></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save Prompt</button>
+                </form>
+            </section>
+
+            <section class="prompts-section">
+                <h2>Saved Prompts (<span id="promptCount">0</span>)</h2>
+                <div id="promptsContainer" class="prompts-grid">
+                    <p class="empty-state">No prompts yet. Create one to get started!</p>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>&copy; 2024 Prompt Library | Built with ❤️ for developers</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
