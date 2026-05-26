@@ -32,6 +32,7 @@ promptForm.addEventListener("submit", (e) => {
 		ratings: [],
 		averageRating: 0,
 		totalRatings: 0,
+		notes: [],
 	};
 
 	// Get existing prompts
@@ -91,10 +92,25 @@ function createPromptCard(prompt) {
 	if (prompt.ratings === undefined) prompt.ratings = [];
 	if (prompt.averageRating === undefined) prompt.averageRating = 0;
 	if (prompt.totalRatings === undefined) prompt.totalRatings = 0;
+	if (prompt.notes === undefined) prompt.notes = [];
+
+	// Get notes preview
+	const notesPreview = prompt.notes.length > 0 
+		? prompt.notes[prompt.notes.length - 1].text.substring(0, 50) + (prompt.notes[prompt.notes.length - 1].text.length > 50 ? "..." : "")
+		: "";
 
 	card.innerHTML = `
         <h3 class="prompt-card-title">${escapeHtml(prompt.title)}</h3>
         <p class="prompt-card-preview">${escapeHtml(preview)}</p>
+        
+        <div class="prompt-card-meta">
+            <button class="btn-notes" onclick="openNotesModal(${prompt.id})" title="View notes">
+                <span class="notes-icon">📝</span>
+                <span class="notes-badge">${prompt.notes.length}</span>
+            </button>
+            ${notesPreview ? `<p class="notes-preview">${escapeHtml(notesPreview)}</p>` : ""}
+        </div>
+
         <div class="rating-component" data-prompt-id="${prompt.id}">
             <div class="stars-input">
                 ${[1, 2, 3, 4, 5]
@@ -224,5 +240,171 @@ document.addEventListener("mouseout", (e) => {
 		const starsInput = e.target.closest(".stars-input");
 		const stars = starsInput.querySelectorAll(".star");
 		stars.forEach((star) => star.classList.remove("hover"));
+	}
+});
+
+// ============ NOTES FUNCTIONALITY ============
+
+let currentPromptId = null;
+
+// Open notes modal
+function openNotesModal(promptId) {
+	currentPromptId = promptId;
+	const prompts = getPrompts();
+	const prompt = prompts.find((p) => p.id === promptId);
+
+	if (!prompt) return;
+
+	// Set modal title
+	document.getElementById("notesModalTitle").textContent = `Notes for "${escapeHtml(prompt.title)}"`;
+
+	// Clear input
+	document.getElementById("noteInput").value = "";
+	document.getElementById("charCount").textContent = "0 / 500";
+
+	// Display notes
+	displayNotes(promptId);
+
+	// Show modal
+	document.getElementById("notesModal").classList.add("show");
+}
+
+// Close notes modal
+function closeNotesModal() {
+	document.getElementById("notesModal").classList.remove("show");
+	currentPromptId = null;
+	document.getElementById("noteInput").value = "";
+}
+
+// Display all notes for a prompt
+function displayNotes(promptId) {
+	const prompts = getPrompts();
+	const prompt = prompts.find((p) => p.id === promptId);
+
+	if (!prompt) return;
+
+	const notesList = document.getElementById("notesList");
+	notesList.innerHTML = "";
+
+	if (!prompt.notes || prompt.notes.length === 0) {
+		notesList.innerHTML = '<p class="empty-notes">No notes yet</p>';
+		return;
+	}
+
+	// Sort notes by most recent first
+	const sortedNotes = [...prompt.notes].sort((a, b) => b.createdAt - a.createdAt);
+
+	sortedNotes.forEach((note) => {
+		const noteElement = document.createElement("div");
+		noteElement.className = "note-item";
+		noteElement.innerHTML = `
+            <div class="note-header">
+                <span class="note-date">${formatRelativeTime(note.createdAt)}</span>
+                <button type="button" class="btn-delete-note" onclick="deleteNote(${promptId}, ${note.id})" title="Delete note">🗑️</button>
+            </div>
+            <p class="note-text">${escapeHtml(note.text)}</p>
+        `;
+		notesList.appendChild(noteElement);
+	});
+}
+
+// Save a new note
+function saveNote() {
+	if (!currentPromptId) return;
+
+	const noteText = document.getElementById("noteInput").value.trim();
+
+	if (!noteText) {
+		alert("Note cannot be empty");
+		return;
+	}
+
+	const prompts = getPrompts();
+	const prompt = prompts.find((p) => p.id === currentPromptId);
+
+	if (!prompt) return;
+
+	// Initialize notes array if it doesn't exist
+	if (!prompt.notes) {
+		prompt.notes = [];
+	}
+
+	// Limit notes to 10 per prompt
+	if (prompt.notes.length >= 10) {
+		alert("Maximum 10 notes per prompt");
+		return;
+	}
+
+	// Create note object
+	const note = {
+		id: Date.now(),
+		text: noteText,
+		createdAt: Date.now(),
+		editedAt: Date.now(),
+	};
+
+	// Add note
+	prompt.notes.push(note);
+
+	// Save to localStorage
+	localStorage.setItem(STORAGE_KEY, JSON.stringify(prompts));
+
+	// Clear input
+	document.getElementById("noteInput").value = "";
+	document.getElementById("charCount").textContent = "0 / 500";
+
+	// Refresh display
+	displayNotes(currentPromptId);
+	displayPrompts();
+}
+
+// Delete a note
+function deleteNote(promptId, noteId) {
+	if (confirm("Are you sure you want to delete this note?")) {
+		const prompts = getPrompts();
+		const prompt = prompts.find((p) => p.id === promptId);
+
+		if (!prompt) return;
+
+		prompt.notes = prompt.notes.filter((note) => note.id !== noteId);
+
+		localStorage.setItem(STORAGE_KEY, JSON.stringify(prompts));
+
+		displayNotes(currentPromptId);
+		displayPrompts();
+	}
+}
+
+// Format relative time (e.g., "2 hours ago")
+function formatRelativeTime(timestamp) {
+	const now = Date.now();
+	const diff = now - timestamp;
+
+	const seconds = Math.floor(diff / 1000);
+	const minutes = Math.floor(seconds / 60);
+	const hours = Math.floor(minutes / 60);
+	const days = Math.floor(hours / 24);
+
+	if (seconds < 60) return "just now";
+	if (minutes < 60) return `${minutes}m ago`;
+	if (hours < 24) return `${hours}h ago`;
+	if (days < 7) return `${days}d ago`;
+
+	return new Date(timestamp).toLocaleDateString();
+}
+
+// Update character count in real-time
+document.addEventListener("input", (e) => {
+	if (e.target.id === "noteInput") {
+		const count = e.target.value.length;
+		document.getElementById("charCount").textContent = `${count} / 500`;
+	}
+});
+
+// Close modal when clicking outside
+document.addEventListener("click", (e) => {
+	const modal = document.getElementById("notesModal");
+	if (e.target === modal) {
+		closeNotesModal();
 	}
 });

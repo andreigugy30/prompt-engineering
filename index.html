@@ -54,6 +54,40 @@
 			</footer>
 		</div>
 
+		<!-- Notes Modal -->
+		<div id="notesModal" class="modal">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h2 id="notesModalTitle">Notes</h2>
+					<button type="button" class="modal-close" onclick="closeNotesModal()">&times;</button>
+				</div>
+				
+				<div class="modal-body">
+					<!-- Notes Editor -->
+					<div class="notes-editor">
+						<textarea
+							id="noteInput"
+							class="note-textarea"
+							placeholder="Add your note here (max 500 characters)..."
+							maxlength="500"
+						></textarea>
+						<div class="note-input-footer">
+							<span id="charCount" class="char-counter">0 / 500</span>
+							<div class="note-buttons">
+								<button type="button" class="btn btn-secondary" onclick="closeNotesModal()">Cancel</button>
+								<button type="button" class="btn btn-primary" onclick="saveNote()">Save Note</button>
+							</div>
+						</div>
+					</div>
+
+					<!-- Notes List -->
+					<div id="notesList" class="notes-list">
+						<p class="empty-notes">No notes yet</p>
+					</div>
+				</div>
+			</div>
+		</div>
+
 		<script src="script.js"></script>
 	</body>
 </html>
